@@ -3,14 +3,23 @@
  * Licensed under the MIT License.
  */
 
-import { MsalProvider, AuthenticatedTemplate, useMsal, UnauthenticatedTemplate } from '@azure/msal-react';
+import {
+  MsalProvider,
+  AuthenticatedTemplate,
+  useMsal,
+  UnauthenticatedTemplate,
+  useMsalAuthentication,
+} from '@azure/msal-react'
 import { Container } from 'react-bootstrap';
 import { PageLayout } from './components/PageLayout';
 import { IdTokenData } from './components/DataDisplay';
 
 import './styles/App.css';
+import { useEffect } from 'react'
+import { InteractionType } from '@azure/msal-browser'
 
 const MainContent = () => {
+
     /**
      * useMsal is a hook that returns the PublicClientApplication instance.
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md
@@ -18,6 +27,22 @@ const MainContent = () => {
     const { instance } = useMsal();
     const activeAccount = instance.getActiveAccount();
 
+    const request = {
+      loginHint: "tasuku.oikawa@sozi.co.jp",
+      scopes: []
+    }
+
+    const { result, error } = useMsalAuthentication(InteractionType.Silent, request);
+
+    console.log(`silent login result ${JSON.stringify(result)}`);
+    useEffect(() => {
+      if (error) {
+        console.log(error);
+        console.log("Error");
+      }
+    }, [error]);
+
+    console.log(activeAccount);
     /**
      * Most applications will need to conditionally render certain components based on whether a user is signed in or not.
      * msal-react provides 2 easy ways to do this. AuthenticatedTemplate and UnauthenticatedTemplate components will

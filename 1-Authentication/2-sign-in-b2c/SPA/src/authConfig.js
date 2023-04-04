@@ -12,22 +12,22 @@ import { LogLevel } from '@azure/msal-browser';
  */
 export const b2cPolicies = {
     names: {
-        signUpSignIn: 'B2C_1_susi_v2',
-        forgotPassword: 'B2C_1_reset_v3',
-        editProfile: 'B2C_1_edit_profile_v2',
+        signUpSignIn: 'B2C_1_signuptest1',
+        forgotPassword: 'B2C_1_passwordReset',
+        editProfile: 'B2C_1_edit1',
     },
     authorities: {
         signUpSignIn: {
-            authority: 'https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi_v2',
+            authority: 'https://soziidtest.b2clogin.com/soziidtest.onmicrosoft.com/B2C_1_signuptest1',
         },
         forgotPassword: {
-            authority: 'https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset_v3',
+            authority: 'https://soziidtest.b2clogin.com/soziidtest.onmicrosoft.com/B2C_1_passwordReset',
         },
         editProfile: {
-            authority: 'https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_edit_profile_v2',
+            authority: 'https://soziidtest.b2clogin.com/soziidtest.onmicrosoft.com/B2C_1_edit1',
         },
     },
-    authorityDomain: 'fabrikamb2c.b2clogin.com',
+    authorityDomain: 'soziidtest.b2clogin.com',
 };
 
 /**
@@ -37,7 +37,7 @@ export const b2cPolicies = {
  */
 export const msalConfig = {
     auth: {
-        clientId: '2fdd06f3-7b34-49a3-a78b-0cf1dd87878e', // This is the ONLY mandatory field that you need to supply.
+        clientId: '4b087789-341a-4733-a503-8affe00bbefe', // This is the ONLY mandatory field that you need to supply.
         authority: b2cPolicies.authorities.signUpSignIn.authority, // Choose SUSI as your default authority.
         knownAuthorities: [b2cPolicies.authorityDomain], // Mark your B2C tenant's domain as trusted.
         redirectUri: '/', // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin

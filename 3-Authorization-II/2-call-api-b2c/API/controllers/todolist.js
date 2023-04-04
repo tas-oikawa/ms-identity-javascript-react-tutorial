@@ -21,6 +21,9 @@ exports.getTodo = (req, res, next) => {
 };
 
 exports.getTodos = (req, res, next) => {
+    console.log("=============");
+    console.log("getTodo");
+    console.log("=============");
     if (hasRequiredDelegatedPermissions(req.authInfo, authConfig.protectedRoutes.todolist.delegatedPermissions.read)) {
         try {
             const owner = req.authInfo['sub'];

@@ -21,6 +21,7 @@ export const NavigationBar = () => {
     };
 
     const handleLoginRedirect = () => {
+        console.log("redirect");
         instance.loginRedirect(loginRequest).catch((error) => console.log(error));
     };
 
