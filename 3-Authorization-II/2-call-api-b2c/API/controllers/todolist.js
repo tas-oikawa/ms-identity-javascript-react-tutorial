@@ -3,11 +3,14 @@ const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync('./data/db.json');
 const db = lowdb(adapter);
 const { hasRequiredDelegatedPermissions } = require('../auth/permissionUtils');
+const { validateIdToken } = require('../common/tokenValidator')
 
 const authConfig = require('../authConfig');
+const httpContext = require('express-http-context');
 
 exports.getTodo = (req, res, next) => {
-    if (hasRequiredDelegatedPermissions(req.authInfo, authConfig.protectedRoutes.todolist.delegatedPermissions.read)) {
+    const token = httpContext.get("decodedToken");
+    if (token) {
         try {
             const id = req.params.id;
             const todo = db.get('todos').find({ id: id }).value();
@@ -20,28 +23,28 @@ exports.getTodo = (req, res, next) => {
     }
 };
 
-exports.getTodos = (req, res, next) => {
-    console.log("=============");
-    console.log("getTodo");
-    console.log("=============");
-    if (hasRequiredDelegatedPermissions(req.authInfo, authConfig.protectedRoutes.todolist.delegatedPermissions.read)) {
+exports.getTodos = async (req, res, next) => {
+    const token = httpContext.get("decodedToken");
+    if (token) {
         try {
-            const owner = req.authInfo['sub'];
+            const owner = token['sub'];
             const todos = db.get('todos').filter({ owner: owner }).value();
-
             res.status(200).send(todos);
         } catch (error) {
+            console.log("error at getTodos");
             next(error);
         }
     } else {
-        next(new Error('User does not have the required permissions'));
+        res.status(401).send();
     }
 };
 
 exports.postTodo = (req, res, next) => {
-    if (hasRequiredDelegatedPermissions(req.authInfo, authConfig.protectedRoutes.todolist.delegatedPermissions.write)) {
+    const token = httpContext.get("decodedToken");
+    if (token) {
         try {
-            db.get('todos').push(req.body).write();
+            const owner = token['sub'];
+            db.get('todos').push({...req.body, owner}).write();
             res.status(200).json({ message: 'success' });
         } catch (error) {
             next(error);
@@ -52,10 +55,11 @@ exports.postTodo = (req, res, next) => {
 };
 
 exports.updateTodo = (req, res, next) => {
-    if (hasRequiredDelegatedPermissions(req.authInfo, authConfig.protectedRoutes.todolist.delegatedPermissions.write)) {
+    const token = httpContext.get("decodedToken");
+    if (token) {
         try {
             const id = req.params.id;
-            const owner = req.authInfo['sub'];
+            const owner = token['sub'];
             db.get('todos').filter({ owner: owner }).find({ id: id }).assign(req.body).write();
 
             res.status(200).json({ message: 'success' });
@@ -68,12 +72,11 @@ exports.updateTodo = (req, res, next) => {
 };
 
 exports.deleteTodo = (req, res, next) => {
-    if (
-        hasRequiredDelegatedPermissions(req.authInfo, authConfig.protectedRoutes.todolist.delegatedPermissions.write)
-    ) {
+    const token = httpContext.get("decodedToken");
+    if (token) {
         try {
             const id = req.params.id;
-            const owner = req.authInfo['sub'];
+            const owner = token['sub'];
 
             db.get('todos').remove({ owner: owner, id: id }).write();
 

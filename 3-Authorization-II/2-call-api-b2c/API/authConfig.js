@@ -1,7 +1,7 @@
 const passportConfig = {
     credentials: {
         tenantName: 'soziidtest.onmicrosoft.com',
-        clientID: '82ec4e14-3b8d-4597-b02a-d789849fa258',
+        clientID: 'e8322962-e54e-4349-8297-0dada2f90df5',
     },
     policies: {
         policyName: 'B2C_1_susi',

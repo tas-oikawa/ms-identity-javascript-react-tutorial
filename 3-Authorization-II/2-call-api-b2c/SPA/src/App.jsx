@@ -11,6 +11,7 @@ import { b2cPolicies, protectedResources } from './authConfig';
 import { compareIssuingPolicy } from './utils/claimUtils';
 
 import './styles/App.css';
+import { Login } from './pages/Login'
 
 const Pages = () => {
     /**
@@ -33,6 +34,7 @@ const Pages = () => {
                  * https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
                  */
                 if (compareIssuingPolicy(event.payload.idTokenClaims, b2cPolicies.names.editProfile)) {
+                    console.log("EDIT PROFILE EVENT OCCURRED.");
                     // retrieve the account from initial sing-in to the app
                     const originalSignInAccount = instance
                         .getAllAccounts()
@@ -96,6 +98,7 @@ const Pages = () => {
         <Routes>
             <Route path="/todolist" element={<TodoList />} />
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
         </Routes>
     );
 };

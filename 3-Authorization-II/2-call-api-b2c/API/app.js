@@ -1,16 +1,16 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const httpContext = require('express-http-context');
 
 const rateLimit = require('express-rate-limit');
 
-
-const passport = require('passport');
-const passportAzureAd = require('passport-azure-ad');
+const jwt = require("jsonwebtoken");
 
 
 const authConfig = require('./authConfig.js');
 const router = require('./routes/index');
+const { validateIdToken } = require('./common/tokenValidator')
 
 
 const app = express();
@@ -42,89 +42,29 @@ app.use(limiter);
 
 app.use(cors());
 
+app.use(httpContext.middleware);
 app.use(express.json())
 app.use(express.urlencoded({ extended: false}));
 app.use(morgan('dev'));
 
-const options = {
-    identityMetadata: `https://${authConfig.metadata.b2cDomain}/${authConfig.credentials.tenantName}/${authConfig.policies.policyName}/${authConfig.metadata.version}/${authConfig.metadata.discovery}`,
-    clientID: authConfig.credentials.clientID,
-    audience: authConfig.credentials.clientID,
-    policyName: authConfig.policies.policyName,
-    isB2C: authConfig.settings.isB2C,
-    validateIssuer: authConfig.settings.validateIssuer,
-    loggingLevel: authConfig.settings.loggingLevel,
-    passReqToCallback: authConfig.settings.passReqToCallback,
-    loggingNoPII: authConfig.settings.loggingNoPII, // set this to true in the authConfig.js if you want to enable logging and debugging
-};
-
-const bearerStrategy = new passportAzureAd.BearerStrategy(options, (req,token, done) => {
-    /**
-     * Below you can do extended token validation and check for additional claims, such as:
-     * - check if the delegated permissions in the 'scp' are the same as the ones declared in the application registration.
-     *
-     * Bear in mind that you can do any of the above checks within the individual routes and/or controllers as well.
-     * For more information, visit: https://learn.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
-     */
-
-    /**
-     * Lines below verifies if the caller's client ID is in the list of allowed clients.
-     * This ensures only the applications with the right client ID can access this API.
-     * To do so, we use "azp" claim in the access token. Uncomment the lines below to enable this check.
-     */
-    // if (!myAllowedClientsList.includes(token.azp)) {
-    //     return done(new Error('Unauthorized'), {}, "Client not allowed");
-    // }
-
-    // const myAllowedClientsList = [
-    //     /* add here the client IDs of the applications that are allowed to call this API */
-    // ]
-
-    /**
-     * Access tokens that have no 'scp' (for delegated permissions).
-     */
-    if (!token.hasOwnProperty('scp')) {
-        return done(new Error('Unauthorized'), null, 'No delegated permissions found');
-    }
-
-    done(null, {}, token);
-});
-
-
-app.use(passport.initialize());
-
-passport.use(bearerStrategy);
-
 app.use(
     '/api',
-    (req, res, next) => {
-        passport.authenticate(
-            'oauth-bearer',
-            {
-                session: false,
-            },
-            (err, user, info) => {
-                console.log("=============");
-                if (err) {
-                    /**
-                     * An error occurred during authorization. Either pass the error to the next function
-                     * for Express error handler to handle, or send a response with the appropriate status code.
-                     */
-                    return res.status(401).json({ error: err.message });
-                }
-
-                if (!user) {
-                    // If no user object found, send a 401 response.
-                    return res.status(401).json({ error: 'Unauthorized' });
-                }
-
-                if (info) {
-                    // access token payload will be available in req.authInfo downstream
-                    req.authInfo = info;
-                    return next();
-                }
-            }
-        )(req, res, next);
+    async (req, res, next) => {
+      const authHeader = req.get("Authorization");
+      if (authHeader.startsWith("Bearer ")) {
+        const token = authHeader.substring(7, authHeader.length);
+        await validateIdToken(token, (code) => {
+          if (code === 200) {
+            httpContext.set("idToken", token);
+            const decoded = jwt.decode(token, { complete: true });
+            httpContext.set("decodedToken", decoded);
+            next();
+          }
+          next();
+        });
+      } else {
+        //Error
+      }
     },
     router, // the router with all the routes
     (err, req, res, next) => {

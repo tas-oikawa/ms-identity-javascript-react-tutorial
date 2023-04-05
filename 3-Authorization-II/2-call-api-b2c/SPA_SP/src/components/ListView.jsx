@@ -8,6 +8,7 @@ import { TodoItem } from "./TodoItem";
 
 import useFetchWithMsal from '../hooks/useFetchWithMsal';
 import { protectedResources } from "../authConfig";
+import useFetchWithIDToken from '../hooks/useFetchWithIDToken'
 
 function usePrevious(value) {
     const ref = useRef();
@@ -20,9 +21,10 @@ function usePrevious(value) {
 }
 
 export const ListView = (props) => {
-    const { error, execute } = useFetchWithMsal({
-        scopes: protectedResources.apiTodoList.scopes.write
-    });
+    const { instance } = useMsal();
+    const account = instance.getActiveAccount();
+
+    const { error, execute } = useFetchWithIDToken();
 
     const [tasks, setTasks] = useState(props.todoListData);
 
@@ -43,7 +45,6 @@ export const ListView = (props) => {
 
     const handleAddTask = (name) => {
         const newTask = {
-            owner: account.idTokenClaims?.sub,
             id: nanoid(),
             name: name,
             completed: false
