@@ -2,9 +2,11 @@ import { AuthenticatedTemplate } from "@azure/msal-react";
 import { useMsal } from "@azure/msal-react";
 import { Container } from "react-bootstrap";
 import { IdTokenData } from "../components/DataDisplay";
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { b2cPolicies, protectedResources } from '../authConfig'
+import {
+  protectedResources,
+} from '../authConfig'
 
 
 /***
@@ -13,8 +15,7 @@ import { b2cPolicies, protectedResources } from '../authConfig'
  * Optional Claims:  https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set
  */
 export const Login = () => {
-    
-    const { instance } = useMsal();    
+    const { instance, inProgress } = useMsal();
     const activeAccount = instance.getActiveAccount();
     const isAuthenticated = activeAccount !== null;
 
@@ -23,30 +24,46 @@ export const Login = () => {
     const redirectParam = queryParams.get("redirect");
 
     useEffect(() => {
-      login();
+      // React 18 から開発モードだとuseEffectが2回呼ばれるので、これで逃げてる。
+      let timeoutId = setTimeout(() => {
+          login();
+        }, 500)
+        // こういう処理を書く
+        return () => {
+          clearTimeout(timeoutId)
+        }
     }, []);
 
     const login = async () => {
+      if(redirectParam) {
+        sessionStorage.setItem("redirectTo", redirectParam);
+      } else {
+        sessionStorage.removeItem("redirectTo");
+      }
       try {
         if (!isAuthenticated) {
+          console.log("redirect");
+          const currentUrl = new URL(window.location.href);
+          const newUrl = `${currentUrl.origin}/redirect`;
           let signUpSignInFlowRequest = {
-            authority: b2cPolicies.authorities.signUpSignIn.authority,
             scopes: [
               ...protectedResources.apiTodoList.scopes.read,
               ...protectedResources.apiTodoList.scopes.write,
             ],
-              redirectUri: `${window.location.href}`
+            redirectUri: newUrl
           };
-          // サインインしていない場合は、認証ページにリダイレクト
+          // msalInstance、認証ページにリダイレクト
           await instance.loginRedirect(signUpSignInFlowRequest);
         } else {
+          console.log("silent");
+          const currentUrl = new URL(window.location.href);
+          const newUrl = `${currentUrl.origin}/redirect`;
           const result = await instance.acquireTokenSilent({
-            authority: b2cPolicies.authorities.signUpSignIn.authority,
             scopes: [
               ...protectedResources.apiTodoList.scopes.read,
               ...protectedResources.apiTodoList.scopes.write,
             ],
-            redirectUri: `${window.location.href}`
+            redirectUri: newUrl
           });
 
           console.log(result);
@@ -61,6 +78,7 @@ export const Login = () => {
     };
     return (
         <>
+          <button onClick={login}>login</button>
             <AuthenticatedTemplate>
                 {
                     activeAccount ?

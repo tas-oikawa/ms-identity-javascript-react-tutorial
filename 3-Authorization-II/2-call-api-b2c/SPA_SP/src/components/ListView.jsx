@@ -6,7 +6,6 @@ import ListGroup from "react-bootstrap/ListGroup";
 import { TodoForm } from "./TodoForm";
 import { TodoItem } from "./TodoItem";
 
-import useFetchWithMsal from '../hooks/useFetchWithMsal';
 import { protectedResources } from "../authConfig";
 import useFetchWithIDToken from '../hooks/useFetchWithIDToken'
 

@@ -4,7 +4,6 @@ import { EventType } from '@azure/msal-browser';
 
 import { Routes, Route } from "react-router-dom";
 import { PageLayout } from './components/PageLayout';
-import { TodoList } from './pages/TodoList';
 import { Home } from './pages/Home';
 
 import { b2cPolicies, protectedResources } from './authConfig';
@@ -12,6 +11,7 @@ import { compareIssuingPolicy } from './utils/claimUtils';
 
 import './styles/App.css';
 import { Login } from './pages/Login'
+import { Redirect } from './pages/Redirect'
 
 const Pages = () => {
     /**
@@ -96,9 +96,9 @@ const Pages = () => {
 
     return (
         <Routes>
-            <Route path="/todolist" element={<TodoList />} />
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/redirect" element={<Redirect />} />
         </Routes>
     );
 };
