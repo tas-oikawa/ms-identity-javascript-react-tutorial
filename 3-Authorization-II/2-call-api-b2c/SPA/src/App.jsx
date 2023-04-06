@@ -12,6 +12,7 @@ import { compareIssuingPolicy } from './utils/claimUtils';
 import './styles/App.css';
 import { Login } from './pages/Login'
 import { Redirect } from './pages/Redirect'
+import { SilentLogin } from './pages/SilentLogin'
 
 const Pages = () => {
     /**
@@ -99,6 +100,7 @@ const Pages = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/redirect" element={<Redirect />} />
+            <Route path="/silentLogin" element={<SilentLogin />} />
         </Routes>
     );
 };
